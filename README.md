@@ -16,6 +16,20 @@ graph TD
     F -- Validates Syntax/Security --> G[Workspace Archive]
 ```
 
+## 📸 Showcase
+
+### Tool Recognition
+The MCP server exposes specialized tools that Claude 4.6 Sonnet can consume to act as an infrastructure architect.
+
+![Available Tools](./assets/tools.png)
+
+### End-to-End Workflow
+The following sequence demonstrates the tool scanning a project, generating optimized infrastructure, and archiving the results.
+
+| Phase 1: Repo Scanning | Phase 2: Docker Generation | Phase 3: Pipeline Generation |
+| :--- | :--- | :--- |
+| ![Phase 1](./assets/action_phase_1.png) | ![Phase 2](./assets/action_phase2.png) | ![Phase 3](./assets/action_phase3.png) |
+
 ## Why This Project?
 
 This tool was built to demonstrate an **AI-First Mindset** specifically aligned with **Infranomics'** methodology:
