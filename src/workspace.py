@@ -1,6 +1,7 @@
 import os
 import shutil
-from typing import List
+import re
+from typing import List, Dict
 
 class WorkspaceManager:
     """
@@ -45,6 +46,44 @@ class WorkspaceManager:
         
         return file_path
 
+    def extract_and_save_files(self, target_path: str, ai_content: str) -> List[str]:
+        """
+        Parses AI response for code blocks and saves them as individual files.
+        Returns a list of saved file paths.
+        """
+        workspace = self.get_project_workspace(target_path)
+        saved_files = []
+
+        # Save the full response as a README first
+        readme_path = self.save_artifact(target_path, "INFRA_LOG.md", ai_content)
+        saved_files.append(readme_path)
+
+        # Regex to find code blocks with optional language tags
+        # Format: ```[language]\n[code]\n```
+        pattern = r"```(?:\w+)?\n(.*?)\n```"
+        blocks = re.findall(pattern, ai_content, re.DOTALL)
+
+        for block in blocks:
+            # Heuristic to determine filename based on content
+            filename = None
+            if "FROM " in block.upper() and "RUN " in block.upper():
+                filename = "Dockerfile"
+            elif "version:" in block and "services:" in block:
+                filename = "docker-compose.yml"
+            elif "on:" in block and "jobs:" in block:
+                filename = ".github/workflows/main.yml"
+            elif "trigger:" in block and "pool:" in block:
+                filename = "azure-pipelines.yml"
+            
+            if filename:
+                file_path = os.path.join(workspace, filename)
+                os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(block.strip())
+                saved_files.append(file_path)
+
+        return saved_files
+
     def apply_to_target(self, target_path: str, project_name: str):
         """
         Synchronizes archived artifacts into the target project filesystem.
@@ -54,6 +93,9 @@ class WorkspaceManager:
             raise FileNotFoundError(f"No local artifacts found for {project_name}")
             
         for root, dirs, files in os.walk(workspace):
+            # Skip the log file during application
+            files = [f for f in files if f != "INFRA_LOG.md"]
+            
             rel_dir = os.path.relpath(root, workspace)
             dest_dir = os.path.join(target_path, rel_dir)
             os.makedirs(dest_dir, exist_ok=True)
