@@ -1,0 +1,10 @@
+mcp
+fastapi
+uvicorn
+pydantic
+python-dotenv
+anthropic
+httpx
+pytest
+pytest-asyncio
+pyyaml
